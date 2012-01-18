@@ -149,9 +149,8 @@ case "$1" in
     off 
     ;;
     *)
-    echo "$0 {start|stop|off}"
+    echo "$0 {start|stop}"
     echo "Start executes primary ruleset. Default is block all in and allow everything out."
     echo "Stop disables all filtering"
-    echo "Off disables all non-loopback connections"
     ;;
 esac
