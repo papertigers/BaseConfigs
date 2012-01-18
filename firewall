@@ -3,6 +3,12 @@
 # Firewall rules for server. Only connections are allowed out when turned on.
 #
 
+# Port that ssh listens on
+ssh_port=22
+
+# Array of ports to open
+open_ports=(80 443)
+
 # Function to set the file to one or zero.
 enable  () { for file in "$@"; do echo 1 > "$file"; done }
 disable () { for file in "$@"; do echo 0 > "$file"; done }
@@ -100,10 +106,13 @@ function on {
 
 
     # the 'open' chain :: rules for accept incoming external connections (daemons)
-    #iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT     # apache/http
+    for port in "${open_ports[@]}"; do
+        iptables -A INPUT -p tcp -m tcp --dport "$port" -j ACCEPT
+    done
+
     # accept ssh and avoid bruteforcings with BRUTEGUARD chain
-    iptables -A INPUT -p tcp -m tcp --dport 22 -j BRUTEGUARD
-    iptables -A INPUT -p tcp -m tcp --dport 22 -m state --state  NEW,RELATED,ESTABLISHED -j ACCEPT
+    iptables -A INPUT -p tcp -m tcp --dport "$ssh_port" -j BRUTEGUARD
+    iptables -A INPUT -p tcp -m tcp --dport "$ssh_port" -m state --state  NEW,RELATED,ESTABLISHED -j ACCEPT
 
 
     # the BRUTEGUARD chain :: block excessive connections (and bruteforcings)
@@ -143,6 +152,7 @@ function off {
 ######################################################################
 function stop {
     # stop all external connections
+    # XXX Not in use
     echo "Firewall: stopping all external connections"
     iptables -F INPUT
     iptables -F OUTPUT
