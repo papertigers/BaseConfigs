@@ -132,6 +132,7 @@ function off {
     # stop firewall
     echo "Firewall: disabling filtering (allowing all access)"
     iptables -F
+    iptables -X
     iptables -F -t nat
     iptables -F -t mangle
     iptables -P INPUT ACCEPT
@@ -140,27 +141,14 @@ function off {
     iptables -X BRUTEGUARD
     iptables -X BLOCKED
 }
-######################################################################
-function stop {
-    # stop all external connections
-    echo "Firewall: stopping all external connections"
-    iptables -F INPUT
-    iptables -F OUTPUT
-    iptables -P INPUT DROP
-    iptables -P FORWARD REJECT
-    iptables -P OUTPUT REJECT
 
-    # allow anything over loopback
-    iptables -A INPUT -i lo -s 127.0.0.1 -j ACCEPT
-    iptables -A OUTPUT -o lo -d 127.0.0.1 -j ACCEPT
-}
 
 case "$1" in
     start)
     on
     ;;
     stop)
-    off
+    off 
     ;;
     *)
     echo "$0 {start|stop|off}"
