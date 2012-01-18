@@ -1,16 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Firewall rules for server. Only connections are allowed out when turned on.
-# 
+#
 
 # Function to set the file to one or zero.
-enable () { for file in $@; do echo 1 > $file; done }
-disable () { for file in $@; do echo 0 > $file; done }
+enable  () { for file in "$@"; do echo 1 > "$file"; done }
+disable () { for file in "$@"; do echo 0 > "$file"; done }
 
 ######################################################################
 function on {
     echo "Firewall: enabling filtering"
-           
+
     #Use Selective ACK which can be used to signify that specific packets are missing.
     disable /proc/sys/net/ipv4/tcp_sack
 
@@ -19,7 +19,7 @@ function on {
 
     #Protect against wrapping sequence numbers and in round trip time measurement.
     disable /proc/sys/net/ipv4/tcp_timestamps
-   
+
     #Help against syn-flood DoS or DDoS attacks using particular choices of initial TCP sequence numbers.
     enable /proc/sys/net/ipv4/tcp_syncookies
 
@@ -46,13 +46,13 @@ function on {
     iptables -F
     iptables -F -t nat
     iptables -F -t mangle
-    
+
     # Default drop policy.
     iptables -P INPUT DROP
     iptables -P OUTPUT DROP
     iptables -P FORWARD DROP
 
-    #Create new chaing for ssh 
+    #Create new chaing for ssh
     iptables -N BRUTEGUARD
     iptables -N BLOCKED
 
@@ -83,7 +83,7 @@ function on {
     #iptables -t nat -A PREROUTING -s x.x.x.x -p tcp --dport 80 -j DNAT --to-destination 129.21.175.19:80
     #iptables -A INPUT -s x.x.x.x -p tcp --dport 80 -j BLOCKED
     #iptables -A INPUT -s x.x.x.x -j BLOCKED
-    
+
     # Allow TCP/UDP connections out. Keep state so conns out are allowed back in.
     iptables -A INPUT  -p tcp -m state --state ESTABLISHED     -j ACCEPT
     iptables -A OUTPUT -p tcp -m state --state NEW,ESTABLISHED -j ACCEPT
