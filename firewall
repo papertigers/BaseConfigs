@@ -111,8 +111,10 @@ function on {
     done
 
     # accept ssh and avoid bruteforcings with BRUTEGUARD chain
-    iptables -A INPUT -p tcp -m tcp --dport "$ssh_port" -j BRUTEGUARD
-    iptables -A INPUT -p tcp -m tcp --dport "$ssh_port" -m state --state  NEW,RELATED,ESTABLISHED -j ACCEPT
+    if [[ -n "$ssh_port" ]]; then
+        iptables -A INPUT -p tcp -m tcp --dport "$ssh_port" -j BRUTEGUARD
+        iptables -A INPUT -p tcp -m tcp --dport "$ssh_port" -m state --state  NEW,RELATED,ESTABLISHED -j ACCEPT
+    fi
 
 
     # the BRUTEGUARD chain :: block excessive connections (and bruteforcings)
