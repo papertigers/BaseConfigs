@@ -158,8 +158,11 @@ case "$1" in
 	stop)
 	off
 	;;
+	status)
+	iptables -L
+	;;
 	*)
-	echo "$0 {start|stop}"
+	echo "$0 {start|status|stop}"
 	echo "Start executes primary ruleset. Default is block all in and allow everything out."
 	echo "Stop disables all filtering"
 	;;
