@@ -7,7 +7,8 @@
 ssh_port=22
 
 # Array of ports to open
-open_ports=(80 443)
+tcp_open_ports=(80 443)
+udp_open_ports=(53)
 
 # Function to set the file to one or zero.
 enable  () { for file in "$@"; do echo 1 > "$file"; done }
@@ -106,8 +107,12 @@ function on {
 
 
 	# the 'open' chain :: rules for accept incoming external connections (daemons)
-	for port in "${open_ports[@]}"; do
+	for port in "${tcp_open_ports[@]}"; do
 		iptables -A INPUT -p tcp -m tcp --dport "$port" -j ACCEPT
+	done
+	
+	for port in "${udp_open_ports[@]}"; do
+		iptables -A INPUT -p udp -m udp --dport "$port" -j ACCEPT
 	done
 
 	# accept ssh and avoid bruteforcings with BRUTEGUARD chain
