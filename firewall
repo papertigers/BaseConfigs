@@ -10,6 +10,9 @@ ssh_port=22
 tcp_open_ports=(80 443)
 udp_open_ports=(53)
 
+# Control whether certain actions are logged
+logging=true
+
 # Function to set the file to one or zero.
 enable  () { for file in "$@"; do echo 1 > "$file"; done }
 disable () { for file in "$@"; do echo 0 > "$file"; done }
@@ -110,7 +113,7 @@ function on {
 	for port in "${tcp_open_ports[@]}"; do
 		iptables -A INPUT -p tcp -m tcp --dport "$port" -j ACCEPT
 	done
-	
+
 	for port in "${udp_open_ports[@]}"; do
 		iptables -A INPUT -p udp -m udp --dport "$port" -j ACCEPT
 	done
@@ -124,20 +127,20 @@ function on {
 
 	# the BRUTEGUARD chain :: block excessive connections (and bruteforcings)
 	iptables -A BRUTEGUARD -m recent --set --name BF
-	iptables -A BRUTEGUARD -m recent --update --seconds 300 --hitcount 5 --name BF -j LOG \
+	"$logging" && iptables -A BRUTEGUARD -m recent --update --seconds 300 --hitcount 5 --name BF -j LOG \
 	                                 --log-level info --log-prefix "[BRUTEFORCE ATTEMPT] "
 	iptables -A BRUTEGUARD -m recent --update --seconds 300 --hitcount 5 --name BF -j DROP
 
 
 	#LOG BLOCKED
 	iptables -A BLOCKED -m recent --set --name BL
-	iptables -A BLOCKED -j LOG --log-level info --log-prefix "[BLOCKED] "
+	"$logging" && iptables -A BLOCKED -j LOG --log-level info --log-prefix "[BLOCKED] "
 	iptables -A BLOCKED -j DROP
 
 	# Drop everything that did not match above and log it.
-	iptables -A INPUT   -j LOG --log-level 4 --log-prefix "IPT_INPUT: "
+	"$logging" && iptables -A INPUT   -j LOG --log-level 4 --log-prefix "IPT_INPUT: "
 	iptables -A INPUT   -j DROP
-	iptables -A FORWARD -j LOG --log-level 4 --log-prefix "IPT_FORWARD: "
+	"$logging" && iptables -A FORWARD -j LOG --log-level 4 --log-prefix "IPT_FORWARD: "
 	iptables -A FORWARD -j DROP
 	#iptables -A OUTPUT  -j LOG --log-level 4 --log-prefix "IPT_OUTPUT: "
 	iptables -A OUTPUT  -j DROP
